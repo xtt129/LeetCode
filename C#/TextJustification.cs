@@ -1,59 +1,37 @@
 public class Solution {
-    struct LineInfo
+    private string GetLine(string[] words, int maxWidth, int start, int end, int length, bool lastLine)
     {
-        public int wordLength;
-        public int wordCount;
-        public LineInfo(int length, int count)
+        StringBuilder sb = new StringBuilder();
+        int whiteSpaces = maxWidth - length;
+        for(int i = start; i < end; ++i)
         {
-            wordLength = length;
-            wordCount = count;
+            int whiteSpaceBetween = lastLine ? 1 : (whiteSpaces - 1) / (end - i) + 1;
+            whiteSpaces -= whiteSpaceBetween;
+            sb.Append(words[i]).Append(' ', whiteSpaceBetween);
         }
-    }
-    
-    private LineInfo  FindLineEnding(string[] words, int start, int maxWidth)
-    {
-        int count = 0;
-        int length = 0;
-        for(int i = start; i < words.Length && length + words[i].Length + count <= maxWidth; ++i)
-        {
-            ++count;
-            length += words[i].Length;
-        }
-        return new LineInfo(length, count);
+        sb.Append(words[end]);
+        sb.Append(' ', whiteSpaces);
+        return sb.ToString();
     }
 
-    //TODO: Ugly code.
-    public IList<string> FullJustify(string[] words, int maxWidth) {
+    public IList<string> FullJustify(string[] words, int maxWidth) 
+    {
         IList<string> text = new List<string>();
         if(null == words) return text;
-        for(int i = 0; i < words.Length;)
+        int length  = 0, start = 0;
+        for(int i = 0; i < words.Length; ++i)
         {
-            LineInfo info = FindLineEnding(words, i, maxWidth);
-            StringBuilder sb = new StringBuilder();
-            if(info.wordCount == 1)
+            if((length + words[i].Length + i - start) > maxWidth)
             {
-                sb.Append(words[i]).Append(' ',maxWidth - words[i].Length);
+                text.Add(GetLine(words, maxWidth, start, i - 1, length, false));
+                length =  0;
+                start = i;
             }
-            else
-            {
-                int whiteSpaces = i + info.wordCount == words.Length ? info.wordCount - 1 : maxWidth - info.wordLength;
-                
-                for(int j = i; j < i + info.wordCount - 1; ++j)
-                {
-                    int whiteSpacesEach = (whiteSpaces - 1) / (info.wordCount - 1 - (j - i)) + 1;
-                    sb.Append(words[j]);
-                    sb.Append(' ', whiteSpacesEach);
-                    whiteSpaces -= whiteSpacesEach;
-                }
-                string lastWord = words[i + info.wordCount - 1];
-                sb.Append(lastWord);
-                if(i + info.wordCount == words.Length)
-                {
-                    sb.Append(' ', maxWidth - sb.Length);
-                }
-            }
-            text.Add(sb.ToString());
-            i += info.wordCount;
+            length += words[i].Length;
+        }
+        if(start < words.Length)
+        {
+            text.Add(GetLine(words, maxWidth, start, words.Length - 1, length, true));
         }
         return text;
     }
